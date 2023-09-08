@@ -3,6 +3,13 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+./bin/Debug/json.txt
+./bin/Debug/excel.xlsx
+./bin/Debug/word.docx
+./bin/Release/json.txt
+./bin/Release/excel.xlsx
+./bin/Release/word.docx
+
 # User-specific files
 *.rsuser
 *.suo
