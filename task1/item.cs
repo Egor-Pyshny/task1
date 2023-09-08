@@ -10,23 +10,23 @@ namespace task1
     {
         [Column("title")]
 
-        public string title { get; set; }
+        public string title { get; set; } = "";
 
         [Column("link")]
         
-        public string link { get; set; }
+        public string link { get; set; } = "";
 
         [Column("description")]
       
-        public string description { get; set; }
+        public string description { get; set; } = "";
 
         [Column("category")]
         
-        public string category { get; set; }
+        public string category { get; set; } = "";
 
         [Column("pubDate")]
         
-        public string pubDate { get; set; }
+        public string pubDate { get; set; } = "";
 
         public static explicit operator Dictionary<string, string>(item v)
         {

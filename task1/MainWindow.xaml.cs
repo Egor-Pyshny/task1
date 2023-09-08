@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 using OfficeOpenXml;
 using Microsoft.Office.Interop.Word;
 using Application = Microsoft.Office.Interop.Word.Application;
+using System.Xml.Serialization;
 
 namespace task1
 {
@@ -24,8 +25,8 @@ namespace task1
         private string write_file_json = Environment.CurrentDirectory + "\\json.txt";
         private string write_file_excel = Environment.CurrentDirectory + "\\excel.xlsx";
         private string write_file_word = Environment.CurrentDirectory + "\\word.docx";
-        delegate IEnumerable<dynamic> method(string text);
-        delegate void method1(IEnumerable<dynamic> items);
+        delegate IEnumerable<Dictionary<string, string>> method(string text);
+        delegate void method1(IEnumerable<Dictionary<string, string>> items);
         private struct _conf {
             public string reading_mode;
             public string writing_mode;
@@ -59,7 +60,7 @@ namespace task1
             conf.writing_mode = (sender as RadioButton).Content.ToString();
         }
 
-        private IEnumerable<dynamic> read_regexp(string text) {
+        private IEnumerable<Dictionary<string, string>> read_regexp(string text) {
             List<Dictionary<string, string>> dict = new List<Dictionary<string, string>>();
             Dictionary<int,string> tags = new Dictionary<int, string>(), temp = new Dictionary<int, string>();
             int depth = 0, max_depth=0;
@@ -115,18 +116,19 @@ namespace task1
             return dict;
         }
 
-        private IEnumerable<dynamic> read_model(string text)
+        private IEnumerable<Dictionary<string, string>> read_model(string text)
         {
-            XDocument doc = XDocument.Parse(text);
-            var items = doc.Descendants("item").Select(item2 => new
-            {
-                Title = item2.Element("title").Value,
-                Link = item2.Element("link").Value,
-                Description = item2.Element("description").Value,
-                Category = item2.Element("category").Value,
-                PubDate = item2.Element("pubDate").Value
-            });            
-            return items.ToList();
+            List<Dictionary<string, string>> list = new List<Dictionary<string, string>>();
+            XmlSerializer serializer = new XmlSerializer(typeof(channel));
+            using (StringReader reader = new StringReader(text))
+            { 
+                channel root = (channel)serializer.Deserialize(reader);
+                foreach (item item1 in root.items){
+                    var dict = (Dictionary<string, string>)item1;
+                    if(dict.ContainsKey("category") && dict["category"].Contains("Политика")) list.Add(dict);
+                }
+            }
+            return list;
         }
 
         private void Start(object sender, RoutedEventArgs e)
@@ -142,12 +144,12 @@ namespace task1
                 { "word", write_word },
                 { "json", write_json },
             };
-            if (read_file == "" || conf.reading_mode == "" || conf.writing_mode == "") return;
+            //if (read_file == "" || conf.reading_mode == "" || conf.writing_mode == "") return;
             FileInfo info = new FileInfo(read_file);
-            if (info.Extension != ".xml") return;
+            //if (info.Extension != ".xml") return;
             using (StreamReader reader = new StreamReader(read_file)) {
                 string text = reader.ReadToEnd();
-                var items = readers[conf.reading_mode](text);
+                var items = readers[conf.reading_mode](text).ToList();
                 var sorted_items = items.OrderBy(temp =>
                 {
                     DateTime date;
