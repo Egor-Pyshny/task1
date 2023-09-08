@@ -141,7 +141,10 @@ namespace task1
                 { "excel", write_excel },
                 { "word", write_word },
                 { "json", write_json },
-            };       
+            };
+            if (read_file == "" || conf.reading_mode == "" || conf.writing_mode == "") return;
+            FileInfo info = new FileInfo(read_file);
+            if (info.Extension != ".xml") return;
             using (StreamReader reader = new StreamReader(read_file)) {
                 string text = reader.ReadToEnd();
                 var items = readers[conf.reading_mode](text);
