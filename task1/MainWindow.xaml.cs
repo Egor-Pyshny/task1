@@ -6,7 +6,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
-using System.Xml.Linq;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using OfficeOpenXml;
@@ -21,7 +20,7 @@ namespace task1
     /// </summary>
     public partial class MainWindow : System.Windows.Window
     {
-        private string read_file = "C:\\Users\\Пользователь\\Downloads\\data.xml";
+        private string read_file = "";
         private string write_file_json = Environment.CurrentDirectory + "\\json.txt";
         private string write_file_excel = Environment.CurrentDirectory + "\\excel.xlsx";
         private string write_file_word = Environment.CurrentDirectory + "\\word.docx";
@@ -60,7 +59,8 @@ namespace task1
             conf.writing_mode = (sender as RadioButton).Content.ToString();
         }
 
-        private IEnumerable<Dictionary<string, string>> read_regexp(string text) {
+        private IEnumerable<Dictionary<string, string>> read_regexp(string text)
+        {
             List<Dictionary<string, string>> dict = new List<Dictionary<string, string>>();
             Dictionary<int,string> tags = new Dictionary<int, string>(), temp = new Dictionary<int, string>();
             int depth = 0, max_depth=0;
@@ -103,16 +103,22 @@ namespace task1
                     max_tags = tags_amount;
                     standart = item;
                 }
-                if(item.ContainsKey("category") && item["category"].Contains("Политика")) dict.Add(item);
+                if (item.ContainsKey("category") && item["category"].Contains("Политика"))
+                {
+                    dict.Add(item);
+                }
             }
-            for(int i=0;i<dict.Count;i++) {
+            for(int i=0;i<dict.Count;i++)
+            {
                 var element = dict[i];
-                foreach (KeyValuePair<string, string> pair in standart) {
-                    if (!element.ContainsKey(pair.Key)) {
+                foreach (KeyValuePair<string, string> pair in standart)
+                {
+                    if (!element.ContainsKey(pair.Key))
+                    {
                         element.Add(pair.Key, "");
                     }
                 }
-            }           
+            }
             return dict;
         }
 
@@ -121,7 +127,7 @@ namespace task1
             List<Dictionary<string, string>> list = new List<Dictionary<string, string>>();
             XmlSerializer serializer = new XmlSerializer(typeof(channel));
             using (StringReader reader = new StringReader(text))
-            { 
+            {
                 channel root = (channel)serializer.Deserialize(reader);
                 foreach (item item1 in root.items){
                     var dict = (Dictionary<string, string>)item1;
@@ -166,7 +172,7 @@ namespace task1
         private void write_json(IEnumerable<dynamic> items)
         {
             string res = JsonConvert.SerializeObject(items);
-            if (!File.Exists(write_file_json)) File.Create(write_file_json);
+            if (!File.Exists(write_file_json)) File.Create(write_file_json).Close();
             File.WriteAllText(write_file_json, String.Empty);
             using (StreamWriter writer = new StreamWriter(write_file_json))
             {
@@ -176,7 +182,7 @@ namespace task1
 
         private void write_word(IEnumerable<dynamic> items)
         {
-            if (!File.Exists(write_file_word)) File.Create(write_file_word);
+            if (!File.Exists(write_file_word)) File.Create(write_file_word).Close();
             Application wordApp = new Application();
             Document doc = wordApp.Documents.Open(write_file_word);
             doc.Content.Delete();
@@ -218,11 +224,12 @@ namespace task1
 
         private void write_excel(IEnumerable<dynamic> items)
         {
-            if (!File.Exists(write_file_excel)) File.Create(write_file_excel);
+            if (!File.Exists(write_file_excel)) File.Create(write_file_excel).Close();
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using (ExcelPackage package = new ExcelPackage(write_file_excel))
             {
-                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-                ExcelWorksheet worksheet = package.Workbook.Worksheets["Лист1"]; ;
+                ExcelWorksheet worksheet = package.Workbook.Worksheets["List"];
+                if(worksheet==null) worksheet = package.Workbook.Worksheets.Add("List");
                 worksheet.Cells.Clear();
                 int row = 1, col;
                 bool write_headers = true;
